@@ -1,0 +1,28 @@
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-versions: ['7.2', '7.3', '7.4']
+
+    steps:
+    - uses: actions/checkout@master
+    - name: Setup PHP Action
+      uses: shivammathur/setup-php@1.3.3
+      with:
+        php-version: ${{ matrix.php-versions }}
+        extension-csv: intl, xdebug
+
+    - name: Composer install
+      run: composer install --dev --prefer-source
+    - name: PHPStan
+      run: vendor/bin/phpstan analyse
+    - name: Run tests
+      run: vendor/bin/phpunit
+    - name: Mutation tests
+      run: vendor/bin/infection --min-msi=95
